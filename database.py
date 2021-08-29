@@ -1,5 +1,6 @@
-import peewee
 from datetime import date
+
+import peewee
 
 
 class DatabaseUpdater:

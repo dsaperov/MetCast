@@ -1,7 +1,7 @@
 import cv2
-import numpy
 from PIL.Image import Image
 from PIL import Image, ImageDraw
+import numpy
 
 from config import WEATHER_COLORS
 

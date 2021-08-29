@@ -18,14 +18,16 @@
 отмечены компоненты, за выполнение которых в программе отвечают отдельные классы).
 """
 
+from datetime import date
 import sys
 import requests
-from image_maker import ImageMaker
-from config import AMBIGUOUS_CITIES_NAMES, DAYS_DECLENSIONS, MONTHS
+
 from transliterate import translit
 from transliterate.exceptions import LanguageDetectionError
+
+from config import AMBIGUOUS_CITIES_NAMES, DAYS_DECLENSIONS, MONTHS
 from database import Forecast, DatabaseUpdater
-from datetime import date
+from image_maker import ImageMaker
 from weather_parser import WeatherParser
 
 
