@@ -17,7 +17,7 @@
 Блок-схема алгоритма, использующегося в работе программы, приведена в файлах папки "Algorithm" (различными цветами
 отмечены компоненты, за выполнение которых в программе отвечают отдельные классы).
 """
-
+import json
 from datetime import date
 import sys
 import requests
@@ -177,9 +177,17 @@ class ForecastMaker:
             self.image_maker.make_postcard(self.forecast_from_db)
             self.postcard_made = True
         elif selected_action == self.ACTIONS[3]:
+            day_periods_number = len(self.weather_parser.day_periods)
             for record in self.forecast_from_db:
-                print(f'{record.date} - {record.weather}, температура {record.temperature}')
-                self.program_finished = True
+                sky_clarity = json.loads(record.sky_clarity)
+                temperature = json.loads(record.temperature)
+                feels_like = json.loads(record.feels_like)
+                print(record.date)
+                for i in range(day_periods_number):
+                    print(self.weather_parser.day_periods[i].capitalize() + ' - ' + sky_clarity[i] + ', температура '
+                          + temperature[i] + ', ощущается, как ' + feels_like[i])
+                print()
+            self.program_finished = True
         else:
             self.program_finished = True
 

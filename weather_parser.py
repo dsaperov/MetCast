@@ -9,8 +9,10 @@ class WeatherParser:
 
     def __init__(self):
         self.dates = []
-        self.weather_data = []
+        self.day_periods = []
+        self.sky_clarity_data = []
         self.temperature_data = []
+        self.feels_like_data = []
 
     def parse(self, city, days_number):
         url = f'https://pogoda.mail.ru/prognoz/{city}/14dney/'
@@ -20,26 +22,39 @@ class WeatherParser:
             return None
 
         soup = BeautifulSoup(response.text, features='html.parser')
-        tags_with_date = soup.find_all('div', {'class': ["heading heading_minor heading_line",
-                                                         "heading heading_minor heading_line text-red"]})
+        tags_with_date = soup.find_all('span', {'class': ["hdr__inner"]})
         self.extract_date(tags_with_date, days_number)
 
-        tags_with_weather_and_temperature = soup.find_all('div', {'class': "day__date"}, string='Днем')
-        self.extract_weather_and_temperature(tags_with_weather_and_temperature, days_number)
+        tags_with_weather_data = soup.find_all('div', {'class': "p-flex__column p-flex__column_percent-16"})
+        self._parse_day_periods(tags_with_weather_data)
+        self.extract_weather_data(tags_with_weather_data, days_number)
 
-        forecast = zip(self.dates, self.weather_data, self.temperature_data)
+        forecast = zip(self.dates, self.sky_clarity_data, self.temperature_data, self.feels_like_data)
         return forecast
 
     def extract_date(self, tags, days_number):
         for date_div_tag in itertools.islice(tags, days_number):
-            date_div_tag.span.decompose()
             date_in_str = re.search(r'\d{1,2}\s[а-я]+', date_div_tag.text).group()
             self.dates.append(date_in_str)
 
-    def extract_weather_and_temperature(self, tags, days_number):
-        for day__date_div_tag in itertools.islice(tags, days_number):
-            day_period_div_tag = day__date_div_tag.parent
-            weather = day_period_div_tag.find('span', {'title': True}).text
-            temperature = day_period_div_tag.find('div', {'class': 'day__temperature'}).text
-            self.weather_data.append(weather)
+    def extract_weather_data(self, tags, days_number):
+        tags = iter(tags)
+        for _ in range(days_number):
+            sky_clarity, temperature, feels_like = ([] for _ in range(3))
+            for _ in range(len(self.day_periods)):
+                div_for_day_period = next(tags)
+                span_tags = div_for_day_period.select('div>span')
+                sky_clarity.append(span_tags[3].get_text())
+                temperature.append(span_tags[2].get_text())
+                feels_like.append(span_tags[4].get_text().split(' ')[-1])
+
+            self.sky_clarity_data.append(sky_clarity)
             self.temperature_data.append(temperature)
+            self.feels_like_data.append(feels_like)
+
+    def _parse_day_periods(self, tags):
+        for tag in tags:
+            day_period = tag.select_one('div>span').get_text()
+            if day_period in self.day_periods:
+                return
+            self.day_periods.append(day_period)

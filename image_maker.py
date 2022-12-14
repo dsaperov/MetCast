@@ -1,47 +1,51 @@
+import json
+
 import cv2
 from PIL.Image import Image
 from PIL import Image, ImageDraw
 import numpy
 
-from config import WEATHER_COLORS
+from config import SKY_CLARITY_COLORS
 
 
 class ImageMaker:
     BLANK_IMAGE_PATH = r'weather_img\probe.jpg'
-    WEATHER = {
+    SKY_CLARITY = {
         'ясно': {
-            'first_gradient_color': WEATHER_COLORS['yellow'],
+            'first_gradient_color': SKY_CLARITY_COLORS['yellow'],
             'image_path': r'weather_img\sun.jpg'
         },
         'дождь/гроза': {
-            'first_gradient_color': WEATHER_COLORS['blue'],
+            'first_gradient_color': SKY_CLARITY_COLORS['blue'],
             'image_path': r'weather_img\rain.jpg'
         },
         'дождь': {
-            'first_gradient_color': WEATHER_COLORS['blue'],
+            'first_gradient_color': SKY_CLARITY_COLORS['blue'],
             'image_path': r'weather_img\rain.jpg'
         },
         'снег': {
-            'first_gradient_color': WEATHER_COLORS['sky_blue'],
+            'first_gradient_color': SKY_CLARITY_COLORS['sky_blue'],
             'image_path': r'weather_img\snow.jpg'},
         'облачно': {
-            'first_gradient_color': WEATHER_COLORS['grey'],
+            'first_gradient_color': SKY_CLARITY_COLORS['grey'],
             'image_path': r'weather_img\cloud.jpg'
         }
     }
 
     def make_postcard(self, records):
         records_generator = (record for record in records)
-
         record = next(records_generator)
-        gradient_first_colour = self.WEATHER[record.weather]['first_gradient_color']
 
+        sky_clarity = json.loads(record.sky_clarity)[1]
+        temperature = json.loads(record.temperature)[1]
+
+        gradient_first_colour = self.SKY_CLARITY[sky_clarity]['first_gradient_color']
         image = self.draw_gradient(gradient_first_colour)
-        self.draw_weather_picture(image, record.weather)
+        self.draw_weather_picture(image, sky_clarity)
         cv_image = cv2.cvtColor(numpy.array(image), cv2.COLOR_RGB2BGR)
 
         text_params = {'first_line': {'x': 50, 'y': 50, 'text': 'TODAY  ' + str(record.date)},
-                       'second_line': {'x': 70, 'y': 135, 'text': str(record.temperature[:-1])}}
+                       'second_line': {'x': 70, 'y': 135, 'text': temperature[:-1]}}
         for line in text_params:
             image_with_text = self.put_text(cv_image, **text_params[line])
 
@@ -65,7 +69,7 @@ class ImageMaker:
         return image
 
     def draw_weather_picture(self, image_embracing, weather_type):
-        image_to_paste_path = self.WEATHER[weather_type]['image_path']
+        image_to_paste_path = self.SKY_CLARITY[weather_type]['image_path']
         image_to_paste = Image.open(image_to_paste_path)
 
         image_embracing_width = image_embracing.size[0]

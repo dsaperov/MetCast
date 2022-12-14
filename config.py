@@ -18,7 +18,7 @@ AMBIGUOUS_CITIES_NAMES = {
     'ростов-на-дону': 'rostov-na-donu'
 }
 
-WEATHER_COLORS = {
+SKY_CLARITY_COLORS = {
     'yellow': (255, 255, 0),
     'blue': (0, 191, 255),
     'sky_blue': (135, 206, 235),
