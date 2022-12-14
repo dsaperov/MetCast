@@ -18,6 +18,7 @@
 отмечены компоненты, за выполнение которых в программе отвечают отдельные классы).
 """
 import json
+import locale
 from datetime import date
 import sys
 import requests
@@ -182,7 +183,8 @@ class ForecastMaker:
                 sky_clarity = json.loads(record.sky_clarity)
                 temperature = json.loads(record.temperature)
                 feels_like = json.loads(record.feels_like)
-                print(record.date)
+                locale.setlocale(locale.LC_TIME, 'ru_Ru')
+                print(record.date.strftime('%d-%m-%Y, %A'))
                 for i in range(day_periods_number):
                     print(self.weather_parser.day_periods[i].capitalize() + ' - ' + sky_clarity[i] + ', температура '
                           + temperature[i] + ', ощущается, как ' + feels_like[i])
@@ -205,4 +207,5 @@ class ForecastMaker:
 
 
 if __name__ == '__main__':
+
     ForecastMaker(DataProcessor(), WeatherParser(), DatabaseUpdater(), ImageMaker()).run()
