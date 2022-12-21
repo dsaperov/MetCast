@@ -1,0 +1,21 @@
+{
+  "preferences": {
+    "days": "3",
+    "city": "cheboksary"
+  },
+  "scenarios": {
+    "no_forecast_in_db": [
+      "city",
+      "days",
+      "2",
+      "3"
+    ],
+    "forecast_in_db": [
+      "city",
+      "1",
+      "days",
+      "2",
+      "3"
+    ]
+  }
+}
