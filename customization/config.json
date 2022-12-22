@@ -1,7 +1,7 @@
 {
   "preferences": {
     "days": "3",
-    "city": "moscow"
+    "city": "moskva"
   },
   "scenarios": {
     "no_forecast_in_db": [
