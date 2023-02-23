@@ -4,11 +4,17 @@ import json
 
 from database import Forecast
 
-with open("customization/config.json", "r") as read_file:
-    config = json.load(read_file)
+SCENARIOS_PATH = 'customization/scenarios.json'
+PREFERENCES_PATH = 'customization/preferences.json'
 
-preferences = config['preferences']
-scenarios = config['scenarios']
+
+def read_in_utf(file):
+    return open(file, mode='r', encoding='utf-8')
+
+
+with read_in_utf(SCENARIOS_PATH) as scenarios_json, read_in_utf(PREFERENCES_PATH) as preferences_json:
+    scenarios = json.load(scenarios_json)
+    preferences = json.load(preferences_json)
 
 forecast_from_db = Forecast.select().where(Forecast.city == preferences['city'], Forecast.date >= date.today())
 
