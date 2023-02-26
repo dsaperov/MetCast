@@ -8,7 +8,7 @@ from transliterate import translit
 from transliterate.exceptions import LanguageDetectionError
 
 from config import AMBIGUOUS_CITIES_NAMES, DAYS_DECLENSIONS, MONTHS
-from database import Forecast, DatabaseUpdater
+from database import Forecast, DatabaseUpdater, DayPeriodsPattern
 from image_maker import ImageMaker
 from weather_parser import WeatherParser
 
@@ -68,7 +68,7 @@ class ForecastMaker:
     def run(self):
         print('Для проверки наличия в базе данных актуальных прогнозов введите название города')
         self.set_city(input())
-        forecast_from_db = Forecast.select().where(Forecast.city == self.city, Forecast.date >= date.today())
+        forecast_from_db = self.get_forecast_from_db()
 
         if forecast_from_db.exists():
             self.forecast_from_db = forecast_from_db
@@ -100,9 +100,13 @@ class ForecastMaker:
 
     def add_forecast_to_db(self):
         forecast = self.make_forecast()
-        self.database_updater.update(forecast, self.data_processor, self.city)
+        self.database_updater.update(forecast, self.weather_parser.day_periods, self.data_processor, self.city)
         print('Прогноз сформирован и загружен в базу')
         self.forecast_from_db_up_to_date = False
+
+    def get_forecast_from_db(self):
+        return Forecast.select(Forecast, DayPeriodsPattern).join(DayPeriodsPattern).where(Forecast.city == self.city,
+                                                                                          Forecast.date >= date.today())
 
     def make_forecast(self):
         print('На сколько дней необходимо сформировать прогноз? Введите число от 1 до 14.')
@@ -152,14 +156,15 @@ class ForecastMaker:
         if selected_action == self.ACTIONS[0]:
             self.add_forecast_to_db()
         elif selected_action == self.ACTIONS[1]:
-            self.forecast_from_db = Forecast.select().where(Forecast.city == self.city, Forecast.date >= date.today())
+            self.forecast_from_db = self.get_forecast_from_db()
             self.forecast_from_db_up_to_date = True
             self.print_forecast_received_from_db_message()
         elif selected_action == self.ACTIONS[2]:
             self.image_maker.make_postcard(self.forecast_from_db)
             self.postcard_made = True
         elif selected_action == self.ACTIONS[3]:
-            day_periods_number = len(self.weather_parser.day_periods)
+            day_periods = json.loads(self.forecast_from_db[0].day_periods.content)
+            day_periods_number = len(day_periods)
             for record in self.forecast_from_db:
                 sky_clarity = json.loads(record.sky_clarity)
                 temperature = json.loads(record.temperature)
@@ -167,7 +172,7 @@ class ForecastMaker:
                 locale.setlocale(locale.LC_TIME, 'ru_Ru')
                 print(record.date.strftime('%d-%m-%Y, %A'))
                 for i in range(day_periods_number):
-                    print(self.weather_parser.day_periods[i].capitalize() + ' - ' + sky_clarity[i] + ', температура '
+                    print(day_periods[i].capitalize() + ' - ' + sky_clarity[i] + ', температура '
                           + temperature[i] + ', ощущается, как ' + feels_like[i])
                 print()
             self.program_finished = True
@@ -188,5 +193,4 @@ class ForecastMaker:
 
 
 if __name__ == '__main__':
-
     ForecastMaker(DataProcessor(), WeatherParser(), DatabaseUpdater(), ImageMaker()).run()
