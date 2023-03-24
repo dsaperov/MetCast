@@ -1,5 +1,6 @@
 import json
 import locale
+import string
 from datetime import date
 import sys
 import requests
@@ -21,8 +22,7 @@ class DataProcessor:
             number = self.validate_days_number(input())
         return int(number)
 
-    @staticmethod
-    def transliterate_city(city):
+    def transliterate_city(self, city):
         if city in AMBIGUOUS_CITIES_NAMES:
             city_transliterated = AMBIGUOUS_CITIES_NAMES[city]
         else:
@@ -30,10 +30,20 @@ class DataProcessor:
                 city_transliterated = translit(city, 'ru', reversed=True).lower()
             except LanguageDetectionError:
                 return False
+        return self.substitute_dashes_with_underscores(city_transliterated)
 
-        if '-' in city_transliterated:
-            city_transliterated = city_transliterated.replace('-', '_')
-        return city_transliterated
+    @staticmethod
+    def substitute_dashes_with_underscores(word):
+        if '-' in word:
+            return word.replace('-', '_')
+        return word
+
+    @staticmethod
+    def city_is_transliterated(city):
+        for char in city:
+            if char not in string.ascii_letters:
+                return False
+        return True
 
     @staticmethod
     def format_date(date_in_str):
