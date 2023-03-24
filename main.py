@@ -134,7 +134,8 @@ class ForecastMaker:
         if not forecast:
             print('К сожалению, город с таким названием не найден.'
                   ' Для продолжения введите название города на транслите.')
-            forecast = self.get_forecast_from_service(input())
+            self.city = input()
+            forecast = self.get_forecast_from_service(days_number)
 
         return forecast
 
